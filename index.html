@@ -16,7 +16,8 @@
       <h1 class="text-2xl font-bold">⚡ Factory Energy Monitoring</h1>
       <p class="text-sm text-base-content/60 mt-1">ระบบเฝ้าระวังการใช้พลังงานไฟฟ้าในโรงงาน (Prototype)</p>
     </div>
-    <div class="bg-base-100 border border-base-300 rounded-lg px-4 py-2 text-lg" id="datetime">11 Jun 2026 &nbsp;|&nbsp; 14:00</div>
+    <input type="date" id="datePicker" value="2026-06-11"
+           class="input input-bordered bg-base-100 border-base-300 text-lg" />
   </header>
 
   <main>
@@ -49,7 +50,7 @@
     <!-- Trend Chart -->
     <section class="card bg-base-100 border border-base-300 mb-6">
       <div class="card-body">
-        <h2 class="card-title text-lg">Hourly Energy Trend <span class="text-xs font-normal text-base-content/40">แนวโน้มการใช้ไฟรายชั่วโมง (24 ชม. ล่าสุด)</span></h2>
+        <h2 class="card-title text-lg">Hourly Energy Trend <span class="text-xs font-normal text-base-content/40">แนวโน้มการใช้ไฟรายชั่วโมง (ตามวันที่เลือก)</span></h2>
         <div class="h-80 relative">
           <canvas id="trendChart"></canvas>
         </div>

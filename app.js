@@ -10,7 +10,7 @@ const timestamps = [
   "18:00", "19:00", "20:00", "21:00", "22:00", "23:00",
 ];
 
-const zones = [
+const baseZones = [
   {
     zoneName: "Zone A - Production Line 1",
     currentUsage: 385,
@@ -47,6 +47,71 @@ const zones = [
                      130, 145, 142, 140, 138, 120, 90, 70, 60, 55, 50, 82],
   },
 ];
+
+// ============================================================
+// Simulated data per date — สุ่มแบบ deterministic (วันเดิม = ข้อมูลเดิม)
+// วันที่ 2026-06-11 ใช้ข้อมูล baseZones ตรง ๆ (วัน demo)
+// ============================================================
+
+const BASE_DATE = "2026-06-11";
+
+function mulberry32(seed) {
+  return function () {
+    seed |= 0; seed = (seed + 0x6D2B79F5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function hashString(str) {
+  let h = 2166136261;
+  for (let i = 0; i < str.length; i++) {
+    h ^= str.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  return h >>> 0;
+}
+
+function generateZonesForDate(dateStr) {
+  if (dateStr === BASE_DATE) return baseZones;
+
+  const day = new Date(dateStr + "T00:00:00").getDay();
+  const isWeekend = day === 0 || day === 6;
+
+  return baseZones.map(base => {
+    const rand = mulberry32(hashString(dateStr + "|" + base.zoneName));
+
+    // ระดับการใช้ไฟของวันนั้น: วันธรรมดา ±10%, วันหยุดลดเหลือ 60–75%
+    const levelFactor = isWeekend
+      ? 0.6 + rand() * 0.15
+      : 0.9 + rand() * 0.2;
+
+    // บางวันมี spike 1–2 ชั่วโมง (โอกาส ~25%) เพื่อให้เกิด Warning/Critical บ้าง
+    const spikeHours = new Set();
+    if (rand() < 0.25) {
+      const count = 1 + Math.floor(rand() * 2);
+      for (let i = 0; i < count; i++) {
+        spikeHours.add(6 + Math.floor(rand() * 16)); // ช่วง 06:00–21:00
+      }
+    }
+
+    const historicalData = base.historicalData.map((v, i) => {
+      const noise = 0.94 + rand() * 0.12;            // ±6% ต่อชั่วโมง
+      const spike = spikeHours.has(i) ? 1.5 + rand() * 0.3 : 1;
+      return Math.round(v * levelFactor * noise * spike);
+    });
+
+    return {
+      zoneName: base.zoneName,
+      maxThreshold: base.maxThreshold,
+      historicalData,
+      currentUsage: historicalData[23],
+    };
+  });
+}
+
+let zones = generateZonesForDate(BASE_DATE);
 
 // ============================================================
 // Status logic — สถานะคำนวณจากตัวเลข ไม่ hardcode
@@ -92,12 +157,21 @@ function renderSummary() {
 // Render: Trend Chart (ผลรวมทุกโซนต่อชั่วโมง + เส้น threshold รวม)
 // ============================================================
 
+let trendChart = null;
+
 function renderChart() {
   const hourlyTotals = timestamps.map((_, i) =>
     zones.reduce((sum, z) => sum + z.historicalData[i], 0));
   const totalThreshold = zones.reduce((sum, z) => sum + z.maxThreshold, 0);
 
-  new Chart(document.getElementById("trendChart"), {
+  if (trendChart) {
+    trendChart.data.datasets[0].data = hourlyTotals;
+    trendChart.data.datasets[1].data = timestamps.map(() => totalThreshold);
+    trendChart.update();
+    return;
+  }
+
+  trendChart = new Chart(document.getElementById("trendChart"), {
     type: "line",
     data: {
       labels: timestamps,
@@ -160,6 +234,16 @@ function renderZoneTable() {
 // Init
 // ============================================================
 
-renderSummary();
-renderChart();
-renderZoneTable();
+function renderAll() {
+  renderSummary();
+  renderChart();
+  renderZoneTable();
+}
+
+document.getElementById("datePicker").addEventListener("change", e => {
+  if (!e.target.value) return;
+  zones = generateZonesForDate(e.target.value);
+  renderAll();
+});
+
+renderAll();

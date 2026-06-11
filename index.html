@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Factory Energy Monitoring</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>⚡</text></svg>">
+  <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css">
+  <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+</head>
+<body class="min-h-screen bg-base-200 text-base-content p-6 lg:p-8">
+
+  <header class="flex flex-wrap items-center justify-between gap-4 mb-6">
+    <div>
+      <h1 class="text-2xl font-bold">⚡ Factory Energy Monitoring</h1>
+      <p class="text-sm text-base-content/60 mt-1">ระบบเฝ้าระวังการใช้พลังงานไฟฟ้าในโรงงาน (Prototype)</p>
+    </div>
+    <div class="bg-base-100 border border-base-300 rounded-lg px-4 py-2 text-lg" id="datetime">11 Jun 2026 &nbsp;|&nbsp; 14:00</div>
+  </header>
+
+  <main>
+
+    <!-- Summary Cards -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
+      <div class="card bg-base-100 border border-base-300">
+        <div class="card-body py-5">
+          <div class="text-sm text-base-content/60">Total Energy Usage <span class="block text-xs text-base-content/40 mt-0.5">พลังงานรวมวันนี้</span></div>
+          <div class="text-4xl font-bold" id="totalUsage">–</div>
+          <div class="text-xs text-base-content/40">kWh</div>
+        </div>
+      </div>
+      <div class="card bg-base-100 border border-base-300" id="criticalCard">
+        <div class="card-body py-5">
+          <div class="text-sm text-base-content/60">Critical Alerts <span class="block text-xs text-base-content/40 mt-0.5">จุดที่ต้องตรวจสอบด่วน</span></div>
+          <div class="text-4xl font-bold" id="criticalCount">–</div>
+          <div class="text-xs text-base-content/40">zones</div>
+        </div>
+      </div>
+      <div class="card bg-base-100 border border-base-300">
+        <div class="card-body py-5">
+          <div class="text-sm text-base-content/60">Zones Monitored <span class="block text-xs text-base-content/40 mt-0.5">โซนที่เฝ้าระวัง</span></div>
+          <div class="text-4xl font-bold" id="zoneCount">–</div>
+          <div class="text-xs text-base-content/40">zones</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Trend Chart -->
+    <section class="card bg-base-100 border border-base-300 mb-6">
+      <div class="card-body">
+        <h2 class="card-title text-lg">Hourly Energy Trend <span class="text-xs font-normal text-base-content/40">แนวโน้มการใช้ไฟรายชั่วโมง (24 ชม. ล่าสุด)</span></h2>
+        <div class="h-80 relative">
+          <canvas id="trendChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Zone Status Table -->
+    <section class="card bg-base-100 border border-base-300 mb-6">
+      <div class="card-body">
+        <h2 class="card-title text-lg">Zone Status <span class="text-xs font-normal text-base-content/40">สถานะรายโซน</span></h2>
+        <div class="overflow-x-auto">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Zone</th>
+                <th class="text-right">Current Usage (kWh)</th>
+                <th class="text-right">Max Threshold (kWh)</th>
+                <th class="text-right">% of Threshold</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="zoneTableBody">
+              <!-- rendered by app.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -213,7 +213,12 @@ function renderZoneTable() {
   const tbody = document.getElementById("zoneTableBody");
   tbody.innerHTML = "";
 
-  zones.forEach(zone => {
+  const statusOrder = { Critical: 0, Warning: 1, Normal: 2 };
+  const sortedZones = [...zones].sort(
+    (a, b) => statusOrder[getStatus(a)] - statusOrder[getStatus(b)]
+  );
+
+  sortedZones.forEach(zone => {
     const status = getStatus(zone);
     const percent = (zone.currentUsage / zone.maxThreshold) * 100;
 
